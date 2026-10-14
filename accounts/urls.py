@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import (CompanyRegistrationView, InvitationCreateView, LogoutView,UserCreateView,UserDetailView,CustomTokenObtainPairView,CurrentUserView,UserManagementViewSet,UserProfileView)
+from .views import (ActivityLogView, CompanyRegistrationView, InvitationCreateView, LogoutView,UserCreateView,UserDetailView,CustomTokenObtainPairView,CurrentUserView,UserManagementViewSet,UserProfileView,InvitationAcceptView)
 
 
 # Admin user management routes
@@ -31,10 +31,14 @@ urlpatterns = [
     # Admin user management
     path("",include(router.urls),),
 
-    path("invitations/",InvitationCreateView.as_view(),name="invitation-create",),
-
     path("profile/",UserProfileView.as_view(),name="user-profile",),
 
     path("users/<uuid:pk>/",UserDetailView.as_view(),name="user-detail",),
+
+    path("invitations/",InvitationCreateView.as_view(),name="invitation-create",),
+
+    path("invitations/accept/<str:token>/",InvitationAcceptView.as_view(),name="invitation-accept",),
+
+    path("activity/",ActivityLogView.as_view(),name="activity-log-list",)
 
 ]

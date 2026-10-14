@@ -8,9 +8,9 @@ from django.utils import timezone
 from companies.models import Company, TenantModel
 
 class Role(models.TextChoices):
-    ADMIN = "ADMIN", "Admin"
-    MANAGER = "MANAGER", "Manager"
-    STAFF = "STAFF", "Staff"
+    ADMIN = "ADMIN","Company Administrator"
+    MANAGER = "MANAGER",  "Inventory Manager"
+    STAFF = "STAFF", "Inventory Staff"
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -48,7 +48,7 @@ def generate_token():
     return secrets.token_urlsafe(32)
 
 def default_expiry():
-    return timezone.now() + timedelta(days=7)
+    return timezone.now() + timedelta(minutes=10)
 
 class Invitation(TenantModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

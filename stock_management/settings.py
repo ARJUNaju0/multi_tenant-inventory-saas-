@@ -49,6 +49,30 @@ SIMPLE_JWT = {
 
 
 
+
+# --------------------------------------------------
+# Email Configuration
+# --------------------------------------------------
+
+# Local development:
+# Emails are printed in the Django terminal instead
+# of connecting to a real SMTP server.
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    "noreply@stockmanagement.local",
+)
+
+# Frontend URL used when generating invitation links.
+FRONTEND_URL = os.getenv(
+    "FRONTEND_URL",
+    "http://localhost:3000",
+)
+
+
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -70,6 +94,7 @@ INSTALLED_APPS = [
     'inventory',
     'suppliers',
     'reports',
+    'notifications',
 ]
 
 MIDDLEWARE = [

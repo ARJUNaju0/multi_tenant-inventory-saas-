@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.permissions import IsAdmin
-from .serializers import CompanySerializer
+from accounts.serializers import CompanyRegistrationSerializer
 from accounts.models import User, Invitation
 from rest_framework.permissions import IsAuthenticated
 from accounts.permissions import IsTenantUser
@@ -27,14 +27,14 @@ class MyCompanyView(APIView):
     def get(self, request):
         company = request.user.company
 
-        serializer = CompanySerializer(company)
+        serializer = CompanyRegistrationSerializer(company)
 
         return Response(serializer.data)
 
     def patch(self, request):
         company = request.user.company
 
-        serializer = CompanySerializer(
+        serializer = CompanyRegistrationSerializer(
             company,
             data=request.data,
             partial=True,

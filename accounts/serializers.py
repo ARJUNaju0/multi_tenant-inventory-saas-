@@ -1,9 +1,11 @@
+from django.utils import timezone
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from .services import register_new_tenant
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import Company, Invitation
+from .models import Company, Invitation, Role, AuditLog
 
 
 User = get_user_model()
@@ -177,8 +179,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         """
 
         if value not in [
-            User.Role.MANAGER,
-            User.Role.STAFF,
+            Role.MANAGER,
+            Role.STAFF,
         ]:
             raise serializers.ValidationError(
                 "Users can only be created with Manager or Staff roles."
@@ -282,10 +284,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 class InvitationSerializer(serializers.ModelSerializer):
 
-    invited_by_name = serializers.CharField(
-        source="invited_by.get_full_name",
-        read_only=True,
-    )
+    invited_by_name = serializers.CharField(source="invited_by.get_full_name",read_only=True,)
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = Invitation
@@ -297,6 +297,7 @@ class InvitationSerializer(serializers.ModelSerializer):
             "created_at",
             "expires_at",
             "accepted_at",
+            "status",
         ]
         read_only_fields = [
             "id",
@@ -304,4 +305,87 @@ class InvitationSerializer(serializers.ModelSerializer):
             "created_at",
             "expires_at",
             "accepted_at",
+            "status",
         ]
+
+    def get_status(self, obj):
+        if obj.accepted_at is not None:
+            return "Accepted"
+
+        if obj.expires_at <= timezone.now():
+            return "Expired"
+
+        return "Pending"
+
+
+
+class InvitationAcceptSerializer(serializers.Serializer):
+    first_name = serializers.CharField(
+        max_length=150,
+        min_length=1,
+    )
+
+    last_name = serializers.CharField(
+        max_length=150,
+        required=False,
+        allow_blank=True,
+    )
+
+    password = serializers.CharField(
+        write_only=True,
+        min_length=8,
+        max_length=128,
+    )
+
+    password_confirm = serializers.CharField(
+        write_only=True,
+        min_length=8,
+        max_length=128,
+    )
+
+    def validate_first_name(self, value):
+        value = value.strip()
+
+        if not value:
+            raise serializers.ValidationError(
+                "First name is required."
+            )
+
+        return value
+
+    def validate(self, attrs):
+        if attrs["password"] != attrs["password_confirm"]:
+            raise serializers.ValidationError({
+                "password_confirm": "Passwords do not match."
+            })
+
+        validate_password(attrs["password"])
+
+        return attrs
+
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(
+        source="user.get_full_name",
+        read_only=True,
+    )
+
+    user_email = serializers.EmailField(
+        source="user.email",
+        read_only=True,
+    )
+
+    class Meta:
+        model = AuditLog
+        fields = [
+            "id",
+            "user_name",
+            "user_email",
+            "action",
+            "entity",
+            "object_id",
+            "changes",
+            "created_at",
+        ]
+
+        read_only_fields = fields
